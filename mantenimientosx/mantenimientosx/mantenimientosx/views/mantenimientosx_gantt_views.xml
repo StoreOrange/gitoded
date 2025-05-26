@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <!-- Acción para abrir la vista Gantt -->
-    <record id="action_mantenimientosx_cronologico_gantt" model="ir.actions.act_url">
-        <field name="name">Cronológico de Mantenimiento</field>
-        <field name="url">/mantenimientosx/gantt</field>
-        <field name="target">self</field>
-    </record>
-</odoo>
