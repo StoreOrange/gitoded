@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Secuencia para solicitudes de mantenimiento -->
+        <record id="seq_mantenimientosx_solicitud" model="ir.sequence">
+            <field name="name">Secuencia de Solicitudes de Mantenimiento</field>
+            <field name="code">mantenimientosx.solicitud</field>
+            <field name="prefix">SOL/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

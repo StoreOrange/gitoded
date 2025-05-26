@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menú raíz (con condición para evitar duplicación) -->
+    <menuitem id="menu_mantenimientosx_root"
+        name="MantenimientosX"
+        web_icon="mantenimientosx,static/description/icon.png"
+        sequence="80"
+        groups="base.group_user"/>
+
+    <!-- Menú Tablero -->
+    <menuitem id="menu_mantenimientosx_tablero"
+        name="Tablero"
+        parent="menu_mantenimientosx_root"
+        action="action_mantenimientosx_tablero"
+        sequence="10"/>
+
+    <!-- Menú Solicitudes -->
+    <menuitem id="menu_mantenimientosx_solicitudes"
+        name="Solicitudes"
+        parent="menu_mantenimientosx_root"
+        sequence="20"/>
+
+    <menuitem id="menu_mantenimientosx_solicitar"
+        name="Solicitar Mantenimiento"
+        parent="menu_mantenimientosx_solicitudes"
+        action="action_mantenimientosx_solicitar"
+        sequence="10"/>
+
+    <menuitem id="menu_mantenimientosx_historico"
+        name="Histórico"
+        parent="menu_mantenimientosx_solicitudes"
+        action="action_mantenimientosx_historico"
+        sequence="20"/>
+
+    <!-- Menú Equipos -->
+    <menuitem id="menu_mantenimientosx_equipos"
+        name="Equipos"
+        parent="menu_mantenimientosx_root"
+        action="action_mantenimientosx_equipos"
+        sequence="30"/>
+
+    <!-- Menú Configuraciones (NUEVO para doña daysi) -->
+    <menuitem id="menu_mantenimientosx_configuraciones"
+        name="Configuraciones"
+        parent="menu_mantenimientosx_root"
+        sequence="40"/>
+
+    <menuitem id="menu_mantenimientosx_categoria"
+        name="Categorías de máquinas"
+        parent="menu_mantenimientosx_configuraciones"
+        action="action_mantenimientosx_categoria"
+        sequence="10"/>
+
+    <menuitem id="menu_mantenimientosx_actividad"
+        name="Actividades de mantenimiento"
+        parent="menu_mantenimientosx_configuraciones"
+        action="action_mantenimientosx_actividad"
+        sequence="20"/>
+
+    <menuitem id="menu_mantenimientosx_horometro"
+        name="Horómetros"
+        parent="menu_mantenimientosx_configuraciones"
+        action="action_mantenimientosx_horometro"
+        sequence="30"/>
+    
+
+    <!-- He eliminado la definición duplicada del menú de horómetros que intentaba usar menu_mantenimientosx_equipo como padre -->
+</odoo>
