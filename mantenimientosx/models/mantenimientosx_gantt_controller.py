@@ -417,9 +417,9 @@ class MantenimientosXGanttController(http.Controller):
                     maquina_item['actividades'].append({
                         'id': actividad_id,
                         'nombre': actividad_data['nombre'],
-                        'ultimo_mto': actividad_data['ultimo_mto'],
-                        'intervalo_mto': actividad_data['intervalo_mto'],
-                        'proximo_mto': actividad_data['proximo_mto'],
+                        'ultimo_mto': int(actividad_data['ultimo_mto'] or 0),
+                        'intervalo_mto': int(actividad_data['intervalo_mto'] or 0),
+                        'proximo_mto': int(actividad_data['proximo_mto'] or 0),
                         'horas_prox_mto': actividad_data['horas_prox_mto'],
                         'dias_prox_mto': actividad_data['dias_prox_mto'],
                         'dias_sig_mto': actividad_data['dias_sig_mto'],
@@ -427,6 +427,7 @@ class MantenimientosXGanttController(http.Controller):
                         'orden_pendiente': actividad_data['orden_pendiente'],
                         'fechas': actividad_data['fechas']
                     })
+
                 
                 resultado.append(maquina_item)
             

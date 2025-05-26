@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Menú padre para configuraciones de mantenimientosx -->
+    <menuitem id="menu_mantenimientosx_configuraciones" name="Configuraciones de MantenimientosX" sequence="10"/>
+
     <!-- Vista de árbol para horómetros -->
     <record id="mantenimientosx_horometro_view_tree" model="ir.ui.view">
         <field name="name">mantenimientosx.horometro.tree</field>
@@ -15,19 +18,19 @@
         </field>
     </record>
 
-    <!-- Vista de formulario para horómetros con chatter a la derecha -->
+    <!-- Vista de formulario para horómetros -->
     <record id="mantenimientosx_horometro_view_form" model="ir.ui.view">
         <field name="name">mantenimientosx.horometro.form</field>
         <field name="model">mantenimientosx.horometro</field>
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <!-- Aquí puedes añadir botones de acción si los necesitas -->
+                    <!-- Botones de acción opcionales -->
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <label for="name" string="Nombre"/>
-                        <h1><field name="name" placeholder="Nombre del equipo"/></h1>
+                        <h1><field name="name" placeholder="Nombre..."/></h1>
                     </div>
                     <group>
                         <field name="fecha" string="Fecha inicial"/>
@@ -44,7 +47,7 @@
         </field>
     </record>
 
-   <!-- Acción para horómetros -->
+    <!-- Acción para horómetros -->
     <record id="action_mantenimientosx_horometro" model="ir.actions.act_window">
         <field name="name">Horómetros</field>
         <field name="res_model">mantenimientosx.horometro</field>

@@ -40,7 +40,7 @@
     <field name="model">mantenimientosx.categoria</field>
     <field name="arch" type="xml">
         <tree editable="bottom">
-            <field name="name" string="Categorías"/>
+            <field name="name" string="Categoría"/>
         </tree>
     </field>
 </record>

@@ -1,0 +1,30 @@
+<odoo>
+<record id="view_mantenimientosx_gantt_form" model="ir.ui.view">
+    <field name="name">mantenimientosx.gantt.view.form</field>
+    <field name="model">mantenimientosx.gantt.view</field>
+    <field name="arch" type="xml">
+        <form string="Cronograma de Mantenimiento (Gantt)">
+            <sheet>
+                <div>
+                    <iframe src="/mantenimientosx/gantt" style="width: 100%; height: 800px;" frameborder="0"/>
+                </div>
+            </sheet>
+        </form>
+    </field>
+</record>
+
+<record id="action_mantenimientosx_gantt_embebido" model="ir.actions.act_window">
+    <field name="name">Cronograma Gantt</field>
+    <field name="res_model">mantenimientosx.gantt.view</field>
+    <field name="view_mode">form</field>
+    <field name="target">current</field>
+</record>
+
+
+    <!-- Menú para el informe, pon el parent correcto según tu estructura -->
+    <menuitem id="menu_mantenimientosx_gantt_embebido"
+        name="Cronograma Gantt"
+        parent="menu_mantenimientosx_tablero"  
+        action="action_mantenimientosx_gantt_embebido"
+        sequence="20"/>
+</odoo>

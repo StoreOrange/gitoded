@@ -1,298 +1,277 @@
 odoo.define("mantenimientosx.gantt", (require) => {
-  var core = require("web.core")
-  var _t = core._t
-  var $ = require("jquery")
- 
+    var core = require("web.core");
+    var _t = core._t;
+    var $ = require("jquery");
 
-  // Inicialización cuando el documento está listo
-  $(document).ready(() => {
-    console.log("Inicializando script de Gantt")
+    // Inicialización cuando el documento está listo
+    $(document).ready(() => {
+        console.log("Inicializando script de Gantt");
 
-    // Inicializar tooltips de Bootstrap
-    $('[data-toggle="tooltip"]').tooltip()
+        // Inicializar tooltips de Bootstrap
+        $('[data-toggle="tooltip"]').tooltip();
 
-    // Inicializar datepickers para las fechas
-    if ($.fn.datepicker) {
-      $(".datepicker").datepicker({
-        dateFormat: "dd/mm/yy",
-        dayNames: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
-        dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
-        monthNames: [
-          "Enero",
-          "Febrero",
-          "Marzo",
-          "Abril",
-          "Mayo",
-          "Junio",
-          "Julio",
-          "Agosto",
-          "Septiembre",
-          "Octubre",
-          "Noviembre",
-          "Diciembre",
-        ],
-        monthNamesShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
-        firstDay: 1,
-        changeMonth: true,
-        changeYear: true,
-        yearRange: "c-10:c+10",
-        showButtonPanel: true,
-        currentText: "Hoy",
-        closeText: "Cerrar",
-      })
-    }
-
-    // Actualizar el enlace de exportación cuando cambian las fechas, aqui puede ocurrir un salto. 
-    $("#fecha_inicio, #fecha_fin").on("change", () => {
-      var fechaInicio = $("#fecha_inicio").val() || ""
-      var fechaFin = $("#fecha_fin").val() || ""
-
-      var url =
-        "/mantenimientosx/excel_export?fecha_inicio=" +
-        encodeURIComponent(fechaInicio) +
-        "&fecha_fin=" +
-        encodeURIComponent(fechaFin) +
-        "&t=" +
-        new Date().getTime() // Añadir timestamp para evitar caché
-
-      $("#link-export-excel").attr("href", url)
-    })
-
-    // Actualizar también el enlace directo cuando cambian las fechas
-    /*$("#fecha_inicio, #fecha_fin").on("change", () => {
-      var fechaInicio = $("#fecha_inicio").val() || ""
-      var fechaFin = $("#fecha_fin").val() || ""
-
-      var url =
-        "/mantenimientosx/excel_export?fecha_inicio=" +
-        encodeURIComponent(fechaInicio) +
-        "&fecha_fin=" +
-        encodeURIComponent(fechaFin)
-
-      $("#link-export-excel").attr("href", url)
-    })*/
-
-    // Función de búsqueda mejorada con animación
-    function buscarEnTabla() {
-      var texto = $("#gantt-search").val().toLowerCase()
-      console.log("Buscando: " + texto)
-
-      // Mostrar indicador de búsqueda
-      $(".search-icon").removeClass("fa-search").addClass("fa-spinner fa-spin")
-
-      setTimeout(() => {
-        if (texto.length === 0) {
-          // Mostrar todas las filas si no hay texto de búsqueda
-          $(".gantt-table tbody tr").show()
-
-          // Restaurar icono de búsqueda
-          $(".search-icon").removeClass("fa-spinner fa-spin").addClass("fa-search")
-          return
+        // Inicializar datepickers para las fechas
+        if ($.fn.datepicker) {
+            $(".datepicker").datepicker({
+                dateFormat: "dd/mm/yy",
+                dayNames: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+                dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+                monthNames: [
+                    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                ],
+                monthNamesShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+                firstDay: 1,
+                changeMonth: true,
+                changeYear: true,
+                yearRange: "c-10:c+10",
+                showButtonPanel: true,
+                currentText: "Hoy",
+                closeText: "Cerrar",
+            });
         }
 
-        // Ocultar todas las filas primero
-        $(".gantt-table tbody tr").hide()
+        // Actualizar el enlace de exportación cuando cambian las fechas
+        $("#fecha_inicio, #fecha_fin").on("change", () => {
+            var fechaInicio = $("#fecha_inicio").val() || "";
+            var fechaFin = $("#fecha_fin").val() || "";
+            var url =
+                "/mantenimientosx/excel_export?fecha_inicio=" +
+                encodeURIComponent(fechaInicio) +
+                "&fecha_fin=" +
+                encodeURIComponent(fechaFin) +
+                "&t=" +
+                new Date().getTime(); // Añadir timestamp para evitar caché
+            $("#link-export-excel").attr("href", url);
+        });
 
-        // Buscar en filas de máquinas
-        $(".gantt-table tbody tr.maquina-row").each(function () {
-          var maquina = $(this).find(".maquina-cell").text().toLowerCase()
+        // -------- Buscador tipo Ctrl+F --------
+        let lastResults = [];
+        let lastActiveIdx = -1;
 
-          if (maquina.indexOf(texto) !== -1) {
-            // Mostrar la fila de la máquina y todas sus actividades
-            $(this).show()
-
-            // Encontrar y mostrar todas las filas de actividad que siguen hasta la próxima máquina
-            var $nextRows = $(this).nextUntil(".maquina-row")
-            $nextRows.show()
-          }
-        })
-
-        // Buscar en filas de actividades
-        $(".gantt-table tbody tr.actividad-row").each(function () {
-          var actividad = $(this).find(".actividad-cell").text().toLowerCase()
-
-          if (actividad.indexOf(texto) !== -1) {
-            // Mostrar la fila de actividad
-            $(this).show()
-
-            // Mostrar la fila de la máquina correspondiente (anterior)
-            var $prevMaquina = $(this).prevAll(".maquina-row").first()
-            $prevMaquina.show()
-          }
-        })
-
-        // Restaurar icono de búsqueda
-        $(".search-icon").removeClass("fa-spinner fa-spin").addClass("fa-search")
-
-        // Mostrar mensaje si no hay resultados
-        if ($(".gantt-table tbody tr:visible").length === 0) {
-          // Crear una fila para el mensaje de no resultados
-          var colCount = $(".gantt-table thead th").length
-          var noResultsRow =
-            '<tr class="no-results"><td colspan="' +
-            colCount +
-            '" class="text-center py-3">No se encontraron resultados para "<strong>' +
-            texto +
-            '</strong>"</td></tr>'
-
-          // Eliminar mensaje anterior si existe
-          $(".gantt-table tbody tr.no-results").remove()
-
-          // Añadir mensaje
-          $(".gantt-table tbody").append(noResultsRow)
+        function limpiarBuscador() {
+            $(".gantt-table td, .gantt-table th, .gantt-table .maquina-cell, .gantt-table .actividad-cell").removeClass("highlight-search highlight-active-search");
+            $(".gantt-table tr").removeClass("found-row");
+            lastResults = [];
+            lastActiveIdx = -1;
         }
-      }, 300) 
-    }
 
-    // Asignar eventos de búsqueda
-    $("#btn-search").on("click", () => {
-      buscarEnTabla()
-    })
+        function buscarEnTabla() {
+            limpiarBuscador();
+            var texto = $("#gantt-search").val().toLowerCase().trim();
+            if (!texto) return;
 
-    $("#gantt-search").on("keyup", function (e) {
-      if (e.key === "Enter") {
-        buscarEnTabla()
-      }
+            // Resalta coincidencias en todas las celdas relevantes
+            $(".gantt-table td, .gantt-table th, .gantt-table .maquina-cell, .gantt-table .actividad-cell").each(function(){
+                var $el = $(this);
+                var val = $el.text().toLowerCase();
+                if (val.includes(texto)) {
+                    $el.addClass("highlight-search");
+                    $el.closest("tr").addClass("found-row").show(); // mostrar la fila
+                    // Guardar referencia para saltar con enter
+                    lastResults.push($el);
+                }
+            });
+            // También muestra la fila de máquina para cada actividad encontrada
+            $(".gantt-table tr.found-row").each(function(){
+                if ($(this).hasClass("actividad-row")) {
+                    $(this).prevAll(".maquina-row").first().show();
+                }
+            });
 
-      // Búsqueda en tiempo real después de 500ms de inactividad
-      clearTimeout($(this).data("timeout"))
-      if ($(this).val().length >= 3 || $(this).val().length === 0) {
-        $(this).data(
-          "timeout",
-          setTimeout(() => {
-            buscarEnTabla()
-          }, 500),
-        )
-      }
-    })
-
-    // Limpiar búsqueda cuando se hace clic en el icono
-    $(".search-icon").on("click", () => {
-      if ($("#gantt-search").val().length > 0) {
-        $("#gantt-search").val("")
-        buscarEnTabla()
-      }
-    })
-
-    // Manejar el envío del formulario de filtro con validación
-    $("#gantt-filter-form").on("submit", function (e) {
-      e.preventDefault()
-
-      var fechaInicio = $("#fecha_inicio").val()
-      var fechaFin = $("#fecha_fin").val()
-
-      // Validar fechas
-      if (!fechaInicio || !fechaFin) {
-        // Mostrar alerta de error
-        var alertHtmlDate =
-          '<div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">' +
-          '<i class="fas fa-exclamation-triangle mr-2"></i> Por favor, ingrese ambas fechas' +
-          '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-          '<span aria-hidden="true">&times;</span></button></div>'
-
-        // Eliminar alertas anteriores
-        $(".date-filter .alert").remove()
-
-        // Insertar alerta después del formulario
-        $(this).after(alertHtmlDate)
-        return
-      }
-
-      // Validar que fecha fin sea mayor o igual a fecha inicio
-      try {
-        var inicio = $.datepicker.parseDate("dd/mm/yy", fechaInicio)
-        var fin = $.datepicker.parseDate("dd/mm/yy", fechaFin)
-
-        if (fin < inicio) {
-          // Mostrar alerta de error
-          var alertHtmlDateRange =
-            '<div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">' +
-            '<i class="fas fa-exclamation-triangle mr-2"></i> La fecha fin debe ser mayor o igual a la fecha inicio' +
-            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-            '<span aria-hidden="true">&times;</span></button></div>'
-
-          // Eliminar alertas anteriores
-          $(".date-filter .alert").remove()
-
-          // Insertar alerta después del formulario
-          $(this).after(alertHtmlDateRange)
-          return
+            // Si hay resultados, poner el primero como activo
+            if (lastResults.length > 0) {
+                lastActiveIdx = 0;
+                lastResults[0].addClass("highlight-active-search");
+                // Scroll a la coincidencia
+                $('html, body').animate({
+                    scrollTop: lastResults[0].offset().top - 150
+                }, 300);
+            } else {
+                // Si no hay resultados, mostrar todas las filas
+                $(".gantt-table tbody tr").show();
+            }
         }
-      } catch (e) {
-        console.error("Error al parsear fechas:", e)
-      }
 
-      // Mostrar indicador de carga en el botón
-      var $btn = $(this).find("button[type='submit']")
-      var originalHtml = $btn.html()
-      $btn.html('<i class="fas fa-spinner fa-spin"></i> Cargando...')
-      $btn.prop("disabled", true)
+        function nextResultado() {
+            if (!lastResults.length) return;
+            lastResults[lastActiveIdx].removeClass("highlight-active-search");
+            lastActiveIdx = (lastActiveIdx + 1) % lastResults.length;
+            lastResults[lastActiveIdx].addClass("highlight-active-search");
+            $('html, body').animate({
+                scrollTop: lastResults[lastActiveIdx].offset().top - 150
+            }, 300);
+        }
 
-      // Redirigir con los parámetros de fecha
-      window.location.href =
-        "/mantenimientosx/gantt?fecha_inicio=" +
-        encodeURIComponent(fechaInicio) +
-        "&fecha_fin=" +
-        encodeURIComponent(fechaFin)
-    })
+        // Buscar con Enter y saltar coincidencias con Enter repetido
+        $("#gantt-search").on("keydown", function(e){
+            if (e.key === "Enter") {
+                if (lastResults.length === 0) {
+                    buscarEnTabla();
+                } else {
+                    nextResultado();
+                }
+                e.preventDefault();
+            }
+        });
 
-    // Hacer que la tabla sea más interactiva
-    $(".gantt-table .maquina-row").on("click", function () {
-      // Toggle para mostrar/ocultar actividades de esta máquina
-      var $nextRows = $(this).nextUntil(".maquina-row")
-      $nextRows.toggle()
+        // Buscar con la lupa
+        $("#btn-search").on("click", function(){
+            buscarEnTabla();
+            $("#gantt-search").focus();
+        });
 
-      // Cambiar icono o estilo para indicar expansión/colapso
-      $(this).toggleClass("expanded")
-    })
+        // Limpiar resaltados si cambias el texto
+        $("#gantt-search").on("input", function(){
+            limpiarBuscador();
+        });
 
-    // Añadir tooltips a las celdas con datos
-    $(".gantt-table td[class*='estado-']").each(function () {
-      var estado = ""
-      if ($(this).hasClass("estado-normal")) estado = "Normal"
-      else if ($(this).hasClass("estado-proximo")) estado = "Próximo"
-      else if ($(this).hasClass("estado-atrasado")) estado = "Atrasado"
-      else if ($(this).hasClass("estado-pendiente")) estado = "Orden Pendiente"
+        // CSS para el resaltado
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .highlight-search {
+                background: #ffe3f2 !important;
+                color: #ad2274 !important;
+                font-weight: 700;
+            }
+            .highlight-active-search {
+                background: #ffbde0 !important;
+                color: #bb164e !important;
+                font-weight: 900;
+                border: 2px solid #ff83be !important;
+            }
+        `;
+        document.head.appendChild(style);
 
-      var docId = $(this).text().trim()
-      if (docId) {
-        $(this).attr("title", estado + ": " + docId)
-        $(this).attr("data-toggle", "tooltip")
-        $(this).css("cursor", "pointer")
-      }
-    })
+        // ---------------- Fin Buscador tipo Ctrl+F ----------------
 
-    // Inicializar tooltips
-    $('[data-toggle="tooltip"]').tooltip()
+        // Limpiar búsqueda cuando se hace clic en el icono (esto borra el texto y limpia resaltado)
+        $(".search-icon").on("click", () => {
+            if ($("#gantt-search").val().length > 0) {
+                $("#gantt-search").val("");
+                limpiarBuscador();
+            }
+        });
 
-    // Añadir efecto hover a las filas
-    $(".gantt-table tr").hover(
-      function () {
-        $(this).addClass("table-hover")
-      },
-      function () {
-        $(this).removeClass("table-hover")
-      },
-    )
+        // Manejar el envío del formulario de filtro con validación
+        $("#gantt-filter-form").on("submit", function (e) {
+            e.preventDefault();
 
-    // Añadir efecto de resaltado a las celdas al hacer hover
-    $(".gantt-table td[class*='estado-']").hover(
-      function () {
-        $(this).css("opacity", "0.8")
-      },
-      function () {
-        $(this).css("opacity", "1")
-      },
-    )
+            var fechaInicio = $("#fecha_inicio").val();
+            var fechaFin = $("#fecha_fin").val();
 
-    // Detectar si estamos en un dispositivo móvil
-    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-    if (isMobile) {
-      // Ajustes específicos para móviles
-      $(".gantt-table").addClass("table-sm")
-      $(".control-panel").addClass("p-2")
-    }
+            // Validar fechas
+            if (!fechaInicio || !fechaFin) {
+                // Mostrar alerta de error
+                var alertHtmlDate =
+                    '<div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">' +
+                    '<i class="fas fa-exclamation-triangle mr-2"></i> Por favor, ingrese ambas fechas' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                    '<span aria-hidden="true">&times;</span></button></div>';
 
-    console.log("Script de Gantt inicializado correctamente")
-  })
-})
+                // Eliminar alertas anteriores
+                $(".date-filter .alert").remove();
+
+                // Insertar alerta después del formulario
+                $(this).after(alertHtmlDate);
+                return;
+            }
+
+            // Validar que fecha fin sea mayor o igual a fecha inicio
+            try {
+                var inicio = $.datepicker.parseDate("dd/mm/yy", fechaInicio);
+                var fin = $.datepicker.parseDate("dd/mm/yy", fechaFin);
+
+                if (fin < inicio) {
+                    // Mostrar alerta de error
+                    var alertHtmlDateRange =
+                        '<div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">' +
+                        '<i class="fas fa-exclamation-triangle mr-2"></i> La fecha fin debe ser mayor o igual a la fecha inicio' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                        '<span aria-hidden="true">&times;</span></button></div>';
+
+                    // Eliminar alertas anteriores
+                    $(".date-filter .alert").remove();
+
+                    // Insertar alerta después del formulario
+                    $(this).after(alertHtmlDateRange);
+                    return;
+                }
+            } catch (e) {
+                console.error("Error al parsear fechas:", e);
+            }
+
+            // Mostrar indicador de carga en el botón
+            var $btn = $(this).find("button[type='submit']");
+            var originalHtml = $btn.html();
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> Cargando...');
+            $btn.prop("disabled", true);
+
+            // Redirigir con los parámetros de fecha
+            window.location.href =
+                "/mantenimientosx/gantt?fecha_inicio=" +
+                encodeURIComponent(fechaInicio) +
+                "&fecha_fin=" +
+                encodeURIComponent(fechaFin);
+        });
+
+        // Hacer que la tabla sea más interactiva
+        $(".gantt-table .maquina-row").on("click", function () {
+            // Toggle para mostrar/ocultar actividades de esta máquina
+            var $nextRows = $(this).nextUntil(".maquina-row");
+            $nextRows.toggle();
+
+            // Cambiar icono o estilo para indicar expansión/colapso
+            $(this).toggleClass("expanded");
+        });
+
+        // Añadir tooltips a las celdas con datos
+        $(".gantt-table td[class*='estado-']").each(function () {
+            var estado = "";
+            if ($(this).hasClass("estado-normal")) estado = "Normal";
+            else if ($(this).hasClass("estado-proximo")) estado = "Próximo";
+            else if ($(this).hasClass("estado-atrasado")) estado = "Atrasado";
+            else if ($(this).hasClass("estado-pendiente")) estado = "Orden Pendiente";
+
+            var docId = $(this).text().trim();
+            if (docId) {
+                $(this).attr("title", estado + ": " + docId);
+                $(this).attr("data-toggle", "tooltip");
+                $(this).css("cursor", "pointer");
+            }
+        });
+
+        // Inicializar tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Añadir efecto hover a las filas
+        $(".gantt-table tr").hover(
+            function () {
+                $(this).addClass("table-hover");
+            },
+            function () {
+                $(this).removeClass("table-hover");
+            }
+        );
+
+        // Añadir efecto de resaltado a las celdas al hacer hover
+        $(".gantt-table td[class*='estado-']").hover(
+            function () {
+                $(this).css("opacity", "0.8");
+            },
+            function () {
+                $(this).css("opacity", "1");
+            }
+        );
+
+        // Detectar si estamos en un dispositivo móvil
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            // Ajustes específicos para móviles
+            $(".gantt-table").addClass("table-sm");
+            $(".control-panel").addClass("p-2");
+        }
+
+        console.log("Script de Gantt inicializado correctamente");
+    });
+});
