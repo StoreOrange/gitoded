@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de árbol (lista) para histórico de máquinas -->
+    <record id="view_mantenimientosx_historico_maquina_tree" model="ir.ui.view">
+        <field name="name">mantenimientosx.cronologico.maquina.historico.tree</field>
+        <field name="model">mantenimientosx.cronologico.maquina</field>
+        <field name="arch" type="xml">
+            <tree string="Histórico de máquinas" create="false" delete="false" edit="false">
+                <field name="fecha"/>
+                <field name="doc_id"/>
+                <field name="maquina_id"/>
+                <field name="categoria_id"/>
+                <field name="horometro_id"/>
+                <field name="actividad"/>
+                <field name="ultimo_mto" widget="integer"/>
+                <field name="intervalo_mto" widget="integer"/>
+                <field name="proximo_mto" widget="integer"/>
+                <field name="horas_prox_mto" widget="integer"/>
+                <field name="dias_prox_mto" widget="integer"/>
+                <field name="dias_sig_mto" widget="integer"/>
+                <field name="dias_para_planificacion" widget="integer"/>
+                <field name="orden_pendiente"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de formulario para histórico de máquinas (solo lectura) -->
+    <record id="view_mantenimientosx_historico_maquina_form" model="ir.ui.view">
+        <field name="name">mantenimientosx.cronologico.maquina.historico.form</field>
+        <field name="model">mantenimientosx.cronologico.maquina</field>
+        <field name="arch" type="xml">
+            <form string="Histórico de máquina" create="false" delete="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="fecha" readonly="1"/>
+                            <field name="doc_id" readonly="1"/>
+                            <field name="maquina_id" readonly="1"/>
+                            <field name="categoria_id" readonly="1"/>
+                            <field name="horometro_id" readonly="1"/>
+                            <field name="actividad" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="ultimo_mto" widget="integer" readonly="1"/>
+                            <field name="intervalo_mto" widget="integer" readonly="1"/>
+                            <field name="proximo_mto" widget="integer" readonly="1"/>
+                            <field name="horas_prox_mto" widget="integer" readonly="1"/>
+                            <field name="dias_prox_mto" widget="integer" readonly="1"/>
+                            <field name="dias_sig_mto" widget="integer" readonly="1"/>
+                            <field name="dias_para_planificacion" widget="integer" readonly="1"/>
+                            <field name="orden_pendiente" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista de búsqueda para histórico de máquinas -->
+    <record id="view_mantenimientosx_historico_maquina_search" model="ir.ui.view">
+        <field name="name">mantenimientosx.cronologico.maquina.historico.search</field>
+        <field name="model">mantenimientosx.cronologico.maquina</field>
+        <field name="arch" type="xml">
+            <search string="Histórico de máquinas">
+                <field name="fecha"/>
+                <field name="doc_id"/>
+                <field name="maquina_id"/>
+                <field name="categoria_id"/>
+                <field name="horometro_id"/>
+                <field name="actividad"/>
+                <separator/>
+                <filter string="Último mes" name="ultimo_mes" domain="[('fecha', '>=', (context_today() + relativedelta(months=-1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Último año" name="ultimo_anio" domain="[('fecha', '>=', (context_today() + relativedelta(years=-1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Máquina" name="group_by_maquina" context="{'group_by': 'maquina_id'}"/>
+                    <filter string="Categoría" name="group_by_categoria" context="{'group_by': 'categoria_id'}"/>
+                    <filter string="Horómetro" name="group_by_horometro" context="{'group_by': 'horometro_id'}"/>
+                    <filter string="Fecha" name="group_by_fecha" context="{'group_by': 'fecha'}"/>
+                    <filter string="Documento" name="group_by_doc" context="{'group_by': 'doc_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción para abrir la vista de histórico de máquinas -->
+    <record id="action_mantenimientosx_historico_maquina" model="ir.actions.act_window">
+        <field name="name">Histórico de máquinas</field>
+        <field name="res_model">mantenimientosx.cronologico.maquina</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_mantenimientosx_historico_maquina_tree"/>
+        <field name="search_view_id" ref="view_mantenimientosx_historico_maquina_search"/>
+        <field name="context">{'search_default_ultimo_mes': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay registros históricos de máquinas
+            </p>
+            <p>
+                Los registros históricos se generan automáticamente al confirmar las horas trabajadas.
+            </p>
+        </field>
+    </record>
+</odoo>

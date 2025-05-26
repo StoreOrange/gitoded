@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vistas para mantenimientosx.solicitud -->
+    
+    <!-- Vista de formulario -->
+    <record id="mantenimientosx_solicitud_view_form" model="ir.ui.view">
+        <field name="name">mantenimientosx.solicitud.form</field>
+        <field name="model">mantenimientosx.solicitud</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_enviar" string="Enviar" type="object" class="oe_highlight" invisible="state != 'borrador'"/>
+                    <button name="action_programar" string="Programar" type="object" class="oe_highlight" invisible="state != 'enviada'"/>
+                    <button name="action_iniciar" string="Iniciar" type="object" class="oe_highlight" invisible="state != 'programada'"/>
+                    <button name="action_completar" string="Completar" type="object" class="oe_highlight" invisible="state != 'en_proceso'"/>
+                    <button name="action_cancelar" string="Cancelar" type="object" invisible="state not in ('borrador', 'enviada', 'programada', 'en_proceso')"/>
+                    <button name="action_borrador" string="Volver a Borrador" type="object" invisible="state != 'cancelada'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="borrador,enviada,programada,en_proceso,completada"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="fecha_solicitud"/>
+                            <field name="fecha_programada"/>
+                        </group>
+                        <group>
+                            <field name="equipo_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Descripción">
+                            <field name="descripcion"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista de árbol -->
+    <record id="mantenimientosx_solicitud_view_tree" model="ir.ui.view">
+        <field name="name">mantenimientosx.solicitud.tree</field>
+        <field name="model">mantenimientosx.solicitud</field>
+        <field name="arch" type="xml">
+            <tree decoration-info="state == 'borrador'" decoration-muted="state == 'cancelada'" decoration-success="state == 'completada'" decoration-warning="state == 'en_proceso'">
+                <field name="name"/>
+                <field name="equipo_id"/>
+                <field name="fecha_solicitud"/>
+                <field name="fecha_programada"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Vista de búsqueda -->
+    <record id="mantenimientosx_solicitud_view_search" model="ir.ui.view">
+        <field name="name">mantenimientosx.solicitud.search</field>
+        <field name="model">mantenimientosx.solicitud</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="equipo_id"/>
+                <field name="descripcion"/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'borrador')]"/>
+                <filter string="Enviada" name="sent" domain="[('state', '=', 'enviada')]"/>
+                <filter string="Programada" name="scheduled" domain="[('state', '=', 'programada')]"/>
+                <filter string="En Proceso" name="in_progress" domain="[('state', '=', 'en_proceso')]"/>
+                <filter string="Completada" name="completed" domain="[('state', '=', 'completada')]"/>
+                <filter string="Cancelada" name="canceled" domain="[('state', '=', 'cancelada')]"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Equipo" name="equipo" context="{'group_by': 'equipo_id'}"/>
+                    <filter string="Estado" name="state" context="{'group_by': 'state'}"/>
+                    <filter string="Fecha de Solicitud" name="fecha_solicitud" context="{'group_by': 'fecha_solicitud'}"/>
+                    <filter string="Fecha Programada" name="fecha_programada" context="{'group_by': 'fecha_programada'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Vista de kanban para el tablero -->
+    <record id="mantenimientosx_solicitud_view_kanban" model="ir.ui.view">
+        <field name="name">mantenimientosx.solicitud.kanban</field>
+        <field name="model">mantenimientosx.solicitud</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" sample="1">
+                <field name="name"/>
+                <field name="equipo_id"/>
+                <field name="state"/>
+                <field name="fecha_programada"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title"><field name="name"/></strong>
+                                        <small class="o_kanban_record_subtitle"><field name="equipo_id"/></small>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <t t-if="record.fecha_programada.raw_value">
+                                        <div>Fecha: <field name="fecha_programada"/></div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+    <!-- Vistas para mantenimientosx.equipo -->
+    
+    <!-- Vista de formulario -->
+    <record id="mantenimientosx_equipo_view_form" model="ir.ui.view">
+        <field name="name">mantenimientosx.equipo.form</field>
+        <field name="model">mantenimientosx.equipo</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_solicitudes" type="object" class="oe_stat_button" icon="fa-wrench">
+                            <field name="solicitud_count" widget="statinfo" string="Solicitudes"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="codigo"/>
+                            <field name="fecha_adquisicion"/>
+                            <field name="categoria_id"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Descripción">
+                            <field name="descripcion"/>
+                        </page>
+                        <page string="Solicitudes">
+                            <field name="solicitud_ids" readonly="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="fecha_solicitud"/>
+                                    <field name="fecha_programada"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista de árbol -->
+    <record id="mantenimientosx_equipo_view_tree" model="ir.ui.view">
+        <field name="name">mantenimientosx.equipo.tree</field>
+        <field name="model">mantenimientosx.equipo</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="codigo"/>
+                <field name="categoria_id"/>
+                <field name="fecha_adquisicion"/>
+                <field name="solicitud_count"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Vista de búsqueda -->
+    <record id="mantenimientosx_equipo_view_search" model="ir.ui.view">
+        <field name="name">mantenimientosx.equipo.search</field>
+        <field name="model">mantenimientosx.equipo</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="codigo"/>
+                <field name="categoria_id"/>
+                <field name="descripcion"/>
+                <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Categoría" name="categoria" context="{'group_by': 'categoria_id'}"/>
+                    <filter string="Fecha de Adquisición" name="fecha_adquisicion" context="{'group_by': 'fecha_adquisicion'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Acciones -->
+    <record id="action_mantenimientosx_solicitar" model="ir.actions.act_window">
+        <field name="name">Solicitar Mantenimiento</field>
+        <field name="res_model">mantenimientosx.solicitud</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'default_state': 'borrador'}</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva solicitud de mantenimiento
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_mantenimientosx_historico" model="ir.actions.act_window">
+        <field name="name">Histórico de Mantenimientos</field>
+        <field name="res_model">mantenimientosx.solicitud</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva solicitud de mantenimiento
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_mantenimientosx_tablero" model="ir.actions.act_window">
+        <field name="name">Tablero</field>
+        <field name="res_model">mantenimientosx.solicitud</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva solicitud de mantenimiento
+            </p>
+        </field>
+    </record>
+    
+    <record id="action_mantenimientosx_equipos" model="ir.actions.act_window">
+        <field name="name">Equipos</field>
+        <field name="res_model">mantenimientosx.equipo</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear un nuevo equipo
+            </p>
+        </field>
+    </record>
+
+    <!-- Vista de árbol para horómetros -->
+    <record id="mantenimientosx_horometro_view_tree" model="ir.ui.view">
+    <field name="name">mantenimientosx.horometro.tree</field>
+    <field name="model">mantenimientosx.horometro</field>
+    <field name="arch" type="xml">
+        <tree>
+            <field name="name" string="Horómetro"/>
+            <field name="fecha" string="Fecha inicial"/>
+            <field name="horas_iniciales" string="Horas iniciales"/>
+            <field name="horas_totales" string="Horas totales"/>
+            <field name="horas_promedio" string="Horas promedio"/>
+        </tree>
+    </field>
+    </record>
+
+<!-- Vista de formulario para horómetros -->
+    <record id="mantenimientosx_horometro_view_form" model="ir.ui.view">
+    <field name="name">mantenimientosx.horometro.form</field>
+    <field name="model">mantenimientosx.horometro</field>
+    <field name="arch" type="xml">
+        <form>
+            <sheet>
+                <group>
+                    <group>
+                        <field name="name"/>
+                        <field name="equipo_id"/>
+                    </group>
+                    <group>
+                        <field name="fecha"/>
+                        <field name="horas_iniciales"/>
+                        <field name="horas_totales"/>
+                        <field name="horas_promedio"/>
+                    </group>
+                </group>
+            </sheet>
+        </form>
+    </field>
+    </record>
+
+    <!-- Vista de búsqueda para horómetros -->
+    <record id="mantenimientosx_horometro_view_search" model="ir.ui.view">
+    <field name="name">mantenimientosx.horometro.search</field>
+    <field name="model">mantenimientosx.horometro</field>
+    <field name="arch" type="xml">
+        <search>
+            <field name="name"/>
+            <field name="equipo_id"/>
+        </search>
+    </field>
+    </record>
+
+    <!-- Acción para horómetros -->
+    <record id="action_mantenimientosx_horometro" model="ir.actions.act_window">
+    <field name="name">Horómetros</field>
+    <field name="res_model">mantenimientosx.horometro</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
+            Crear un nuevo registro de horómetro
+        </p>
+    </field>
+    </record>
+
+
+
+</odoo>
